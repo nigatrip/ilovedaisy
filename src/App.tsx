@@ -3,29 +3,15 @@ import { MenuScreen } from './screens/MenuScreen';
 import { RoomScreen } from './screens/RoomScreen';
 import { GameScreen } from './screens/GameScreen';
 import { sound } from './audio/SoundManager';
-
-type Screen = 'menu' | 'room' | 'game';
-
-function randomCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  return Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-}
-
-/** Parse initial location for deep links: #room:CODE  or  #game:GAMEID */
-function initialRoute(): { screen: Screen; code: string; gameId: string } {
-  const h = window.location.hash.replace(/^#/, '');
-  const [kind, value] = h.split(':');
-  if (kind === 'room') return { screen: 'room', code: (value ?? '').toUpperCase().slice(0, 6) || randomCode(), gameId: 'sumo' };
-  if (kind === 'game') return { screen: 'game', code: randomCode(), gameId: value || 'sumo' };
-  return { screen: 'menu', code: '', gameId: 'sumo' };
-}
+import { getRoomStore, useRoom } from './net/roomStore';
+import { Character } from './components/characters/Character';
+import { Logo } from './components/ui/Logo';
 
 export default function App() {
-  const init = initialRoute();
-  const [screen, setScreen] = useState<Screen>(init.screen);
-  const [roomCode, setRoomCode] = useState(init.code);
-  const [gameId, setGameId] = useState(init.gameId);
-  const [round, setRound] = useState(0);
+  const room = useRoom();
+  const [demo, setDemo] = useState(false);
+  const [demoGame, setDemoGame] = useState('sumo');
+  const [demoRound, setDemoRound] = useState(0);
 
   useEffect(() => {
     const unlock = () => sound.unlock();
@@ -37,46 +23,77 @@ export default function App() {
     };
   }, []);
 
-  return (
-    <div className="h-full w-full">
-      <div className="mx-auto h-full w-full max-w-6xl">
-        {screen === 'menu' && (
-          <MenuScreen
-            onCreateRoom={() => {
-              setRoomCode(randomCode());
-              setScreen('room');
-            }}
-            onJoinRoom={(code) => {
-              setRoomCode(code);
-              setScreen('room');
-            }}
-            onPickGame={(id) => {
-              setGameId(id);
-              setRound(0);
-              setScreen('game');
-            }}
-          />
-        )}
-        {screen === 'room' && (
-          <RoomScreen
-            code={roomCode}
-            onPickGame={(id) => {
-              setGameId(id);
-              setRound(0);
-              setScreen('game');
-            }}
-            onLeave={() => setScreen('menu')}
-          />
-        )}
-        {screen === 'game' && (
-          <GameScreen
-            key={`${gameId}-${round}`}
-            gameId={gameId}
-            onRematch={() => setRound((r) => r + 1)}
-            onExit={() => setScreen('menu')}
-          />
-        )}
+  useEffect(() => {
+    const h = window.location.hash.replace(/^#/, '');
+    const [kind, value] = h.split(':');
+    if (kind === 'room' && value) void getRoomStore().joinRoom(value);
+    if (kind === 'game' && value) {
+      setDemo(true);
+      setDemoGame(value);
+    }
+  }, []);
+
+  if (room.phase === 'creating') {
+    return (
+      <div className="bg-arena flex h-full flex-col items-center justify-center gap-4">
+        <Logo size="md" className="animate-floaty" />
+        <div className="flex gap-2">
+          {[0, 1, 2].map((i) => (
+            <span key={i} className="h-3 w-3 animate-bounce rounded-full bg-daisy" style={{ animationDelay: `${i * 150}ms` }} />
+          ))}
+        </div>
+        <p className="text-sm font-bold text-white/70">Connecting…</p>
       </div>
-    </div>
+    );
+  }
+
+  if (room.phase === 'pending') {
+    return (
+      <div className="bg-arena flex h-full flex-col items-center justify-center gap-6 px-6">
+        <Character color="blue" state="jump" size={110} />
+        <div className="text-center">
+          <p className="font-display text-3xl text-cream text-outline">Requesting to join…</p>
+          <p className="mt-2 text-sm font-bold text-white/70">Waiting for the host to accept you</p>
+        </div>
+        <button
+          className="arcade-btn arcade-btn--grape px-5 py-2 text-sm"
+          onClick={() => getRoomStore().leave()}
+        >
+          Cancel
+        </button>
+      </div>
+    );
+  }
+
+  if (room.phase === 'lobby') {
+    return <RoomScreen />;
+  }
+
+  if (room.phase === 'playing' || room.phase === 'result') {
+    return <GameScreen key={`${room.room?.code ?? 'x'}:${room.room?.gameId ?? 'sumo'}`} />;
+  }
+
+  if (demo) {
+    return (
+      <GameScreen
+        key={`demo:${demoGame}:${demoRound}`}
+        demo
+        demoGameId={demoGame}
+        demoRound={demoRound}
+        onRematch={() => setDemoRound((r) => r + 1)}
+        onExit={() => setDemo(false)}
+      />
+    );
+  }
+
+  return (
+    <MenuScreen
+      onCreateRoom={() => void getRoomStore().createRoom()}
+      onJoinRoom={(code) => void getRoomStore().joinRoom(code)}
+      onDemo={(gameId) => {
+        setDemo(true);
+        setDemoGame(gameId);
+      }}
+    />
   );
 }

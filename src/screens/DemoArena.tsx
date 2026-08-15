@@ -6,6 +6,8 @@ import { sound } from '../audio/SoundManager';
 
 interface DemoArenaProps {
   gameId: string;
+  /** deterministic winner computed by the caller so both clients agree */
+  winner: 0 | 1 | 2;
   onRoundEnd: (winner: 0 | 1 | 2) => void;
 }
 
@@ -31,10 +33,9 @@ const POSE: Record<string, CharacterState> = {
   tapbattle: 'attack',
 };
 
-export function DemoArena({ gameId, onRoundEnd }: DemoArenaProps) {
+export function DemoArena({ gameId, winner, onRoundEnd }: DemoArenaProps) {
   const game = GAME_BY_ID[gameId];
   const [t, setT] = useState(0);
-  const [winner] = useState<0 | 1 | 2>(() => (Math.random() < 0.5 ? 0 : 1));
 
   useEffect(() => {
     const start = performance.now();

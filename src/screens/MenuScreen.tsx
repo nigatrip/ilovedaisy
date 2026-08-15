@@ -4,15 +4,18 @@ import { ArcadeButton } from '../components/ui/ArcadeButton';
 import { GameCard } from '../components/cards/GameCard';
 import { GAMES } from '../gameShell/registry';
 import { sound } from '../audio/SoundManager';
+import { useRoom, useRoomActions } from '../net/roomStore';
 
 interface MenuScreenProps {
   onCreateRoom: () => void;
   onJoinRoom: (code: string) => void;
-  onPickGame: (gameId: string) => void;
+  onDemo: (gameId: string) => void;
 }
 
-export function MenuScreen({ onCreateRoom, onJoinRoom, onPickGame }: MenuScreenProps) {
+export function MenuScreen({ onCreateRoom, onJoinRoom, onDemo }: MenuScreenProps) {
   const [code, setCode] = useState('');
+  const room = useRoom();
+  const actions = useRoomActions();
 
   return (
     <div className="bg-arena flex min-h-full flex-col items-center overflow-y-auto no-scrollbar px-4 pb-8">
@@ -22,6 +25,15 @@ export function MenuScreen({ onCreateRoom, onJoinRoom, onPickGame }: MenuScreenP
           2-player private party duels · made for friends
         </p>
       </div>
+
+      {room.error && (
+        <div className="mt-4 w-full max-w-sm animate-pop rounded-2xl border-2 border-[#ff4d5e]/60 bg-[#ff4d5e]/20 px-4 py-3 text-center text-sm font-bold text-cream">
+          {room.error}
+          <button className="ml-2 font-extrabold text-daisy" onClick={() => actions.clearError()}>
+            ✕
+          </button>
+        </div>
+      )}
 
       <div className="mt-8 flex w-full max-w-sm flex-col items-stretch gap-3 animate-slide-up">
         <ArcadeButton
@@ -69,14 +81,14 @@ export function MenuScreen({ onCreateRoom, onJoinRoom, onPickGame }: MenuScreenP
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {GAMES.map((g, i) => (
             <div key={g.id} className="animate-slide-up" style={{ animationDelay: `${i * 50}ms` }}>
-              <GameCard gameId={g.id} locked onClick={() => { sound.play('click'); onPickGame(g.id); }} />
+              <GameCard gameId={g.id} locked onClick={() => { sound.play('click'); onDemo(g.id); }} />
             </div>
           ))}
         </div>
       </div>
 
       <p className="mt-10 text-xs font-semibold text-white/40">
-        Local demo build · networking arrives next
+        Tap a card to preview the demo · join a friend for real duels
       </p>
     </div>
   );
