@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="petal" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#ffd9e8"/>
+    </linearGradient>
+    <radialGradient id="core" cx="0.35" cy="0.3" r="0.9">
+      <stop offset="0" stop-color="#ffe97d"/>
+      <stop offset="0.6" stop-color="#ffc83d"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </radialGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="#24125c"/>
+  <g transform="translate(32 30)">
+    <g fill="url(#petal)" stroke="#f39c7f" stroke-width="1.4">
+      <ellipse cx="0" cy="-16" rx="7.5" ry="12"/>
+      <ellipse cx="0" cy="16" rx="7.5" ry="12"/>
+      <ellipse cx="-16" cy="0" rx="12" ry="7.5"/>
+      <ellipse cx="16" cy="0" rx="12" ry="7.5"/>
+      <ellipse cx="-11" cy="-11" rx="10" ry="6.5" transform="rotate(45 -11 -11)"/>
+      <ellipse cx="11" cy="-11" rx="10" ry="6.5" transform="rotate(-45 11 -11)"/>
+      <ellipse cx="-11" cy="11" rx="10" ry="6.5" transform="rotate(-45 -11 11)"/>
+      <ellipse cx="11" cy="11" rx="10" ry="6.5" transform="rotate(45 11 11)"/>
+    </g>
+    <circle r="10.5" fill="url(#core)" stroke="#d97706" stroke-width="1.6"/>
+    <circle cx="-3.2" cy="-3.4" r="3" fill="#fff3" />
+  </g>
+</svg>

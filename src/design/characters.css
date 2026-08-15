@@ -1,0 +1,79 @@
+/* Character animation */
+.c-anim-bob {
+  animation: cBob 2.2s ease-in-out infinite;
+}
+.c-anim-runbob {
+  animation: cRunBob 0.42s ease-in-out infinite;
+}
+.c-anim-celebrate {
+  animation: cCelebrate 0.85s ease-in-out infinite;
+}
+.c-anim-losebob {
+  animation: cLoseBob 1.6s ease-in-out infinite;
+}
+
+.c-swing-leg-l {
+  animation: cSwingLegL 0.42s ease-in-out infinite;
+}
+.c-swing-leg-r {
+  animation: cSwingLegR 0.42s ease-in-out infinite;
+}
+.c-swing-arm-l {
+  animation: cSwingArmL 0.42s ease-in-out infinite;
+}
+.c-swing-arm-r {
+  animation: cSwingArmR 0.42s ease-in-out infinite;
+}
+.c-wave-arm {
+  animation: cWaveArm 0.6s ease-in-out infinite;
+}
+
+.c-eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cBlink 3.8s ease-in-out infinite;
+}
+
+@keyframes cBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes cRunBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes cCelebrate {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  30% { transform: translateY(-15px) scaleY(1.08); }
+  62% { transform: translateY(-3px) scaleY(0.94); }
+}
+@keyframes cLoseBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+@keyframes cSwingLegL {
+  0%, 100% { transform: rotate(calc(var(--legL) - 26deg)); }
+  50% { transform: rotate(calc(var(--legL) + 26deg)); }
+}
+@keyframes cSwingLegR {
+  0%, 100% { transform: rotate(calc(var(--legR) + 26deg)); }
+  50% { transform: rotate(calc(var(--legR) - 26deg)); }
+}
+@keyframes cSwingArmL {
+  0%, 100% { transform: rotate(calc(var(--armL) + 22deg)); }
+  50% { transform: rotate(calc(var(--armL) - 22deg)); }
+}
+@keyframes cSwingArmR {
+  0%, 100% { transform: rotate(calc(var(--armR) - 22deg)); }
+  50% { transform: rotate(calc(var(--armR) + 22deg)); }
+}
+@keyframes cWaveArm {
+  0%, 100% { transform: rotate(calc(var(--armL) - 16deg)); }
+  50% { transform: rotate(calc(var(--armL) + 16deg)); }
+}
+@keyframes cBlink {
+  0%, 4%, 96%, 100% { transform: scaleY(1); }
+  7% { transform: scaleY(0.08); }
+  9% { transform: scaleY(1); }
+}
