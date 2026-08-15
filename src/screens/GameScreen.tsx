@@ -5,6 +5,7 @@ import { Confetti } from '../design/Confetti';
 import { CountdownOverlay, type CountdownStage } from '../gameShell/CountdownOverlay';
 import { sound } from '../audio/SoundManager';
 import { DemoArena } from './DemoArena';
+import { TicTacToeBoard } from '../games/ticTacToe/TicTacToeBoard';
 import { getRoomStore, useRoom } from '../net/roomStore';
 import { getIdentity } from '../net/identity';
 import type { CharacterColor } from '../components/characters/characterTypes';
@@ -124,7 +125,10 @@ export function GameScreen({ demo, demoGameId, demoRound, onRematch, onExit }: G
     const loseColor: CharacterColor = winner === 0 ? 'blue' : 'red';
     const peerVote = demo ? true : (room.room?.players.find((p) => p.id !== me.id)?.rematchVote ?? false);
     const title = winner === 2 ? "It's a draw!" : `${winner === 0 ? 'Player 1' : 'Player 2'} wins!`;
-    const iAmWinner = demo || (winner === 0 && room.isHost) || (winner === 1 && !room.isHost);
+    const tttDemo = demo && gameId === 'tictactoe';
+    const iAmWinner = tttDemo
+      ? winner === 0
+      : demo || (winner === 0 && room.isHost) || (winner === 1 && !room.isHost);
 
     return (
       <div className="bg-arena relative flex min-h-full flex-col items-center justify-center gap-6 overflow-hidden px-4">
@@ -200,7 +204,11 @@ export function GameScreen({ demo, demoGameId, demoRound, onRematch, onExit }: G
     <div className="relative h-full">
       {!playing && countdown !== null && <CountdownOverlay stage={countdown} />}
       {playing && (
-        <DemoArena gameId={gameId} winner={computedWinner} onRoundEnd={handleRoundEnd} />
+        gameId === 'tictactoe' ? (
+          <TicTacToeBoard key={seedRound} isDemo={!!demo} round={seedRound} onEnd={handleRoundEnd} />
+        ) : (
+          <DemoArena gameId={gameId} winner={computedWinner} onRoundEnd={handleRoundEnd} />
+        )
       )}
     </div>
   );

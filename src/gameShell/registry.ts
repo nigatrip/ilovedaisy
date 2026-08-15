@@ -106,7 +106,7 @@ export const PLAYABLE: Record<string, boolean> = {
   football: false,
   tank: false,
   race: false,
-  tictactoe: false,
+  tictactoe: true,
   connect4: false,
   tapbattle: false,
 };

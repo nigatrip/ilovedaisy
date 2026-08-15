@@ -1,6 +1,6 @@
 import { Character } from '../components/characters/Character';
 import { GameCard } from '../components/cards/GameCard';
-import { GAMES } from '../gameShell/registry';
+import { GAMES, PLAYABLE } from '../gameShell/registry';
 import { sound } from '../audio/SoundManager';
 import { useRoom, useRoomActions } from '../net/roomStore';
 import { getIdentity, saveIdentity } from '../net/identity';
@@ -161,20 +161,24 @@ export function RoomScreen() {
           <span className="h-1 flex-1 rounded-full bg-white/20" />
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {GAMES.map((g) => (
-            <GameCard
-              key={g.id}
-              gameId={g.id}
-              onClick={() => {
-                if (!peer) {
-                  sound.play('hit');
-                  return;
-                }
-                sound.play('go');
-                void actions.startGame(g.id);
-              }}
-            />
-          ))}
+          {GAMES.map((g) => {
+            const playable = PLAYABLE[g.id];
+            return (
+              <GameCard
+                key={g.id}
+                gameId={g.id}
+                locked={!playable}
+                onClick={() => {
+                  if (!playable || !peer) {
+                    sound.play('hit');
+                    return;
+                  }
+                  sound.play('go');
+                  void actions.startGame(g.id);
+                }}
+              />
+            );
+          })}
         </div>
       </div>
 

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Logo } from '../components/ui/Logo';
 import { ArcadeButton } from '../components/ui/ArcadeButton';
 import { GameCard } from '../components/cards/GameCard';
-import { GAMES } from '../gameShell/registry';
+import { GAMES, PLAYABLE } from '../gameShell/registry';
 import { sound } from '../audio/SoundManager';
 import { useRoom, useRoomActions } from '../net/roomStore';
 
@@ -81,7 +81,7 @@ export function MenuScreen({ onCreateRoom, onJoinRoom, onDemo }: MenuScreenProps
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
           {GAMES.map((g, i) => (
             <div key={g.id} className="animate-slide-up" style={{ animationDelay: `${i * 50}ms` }}>
-              <GameCard gameId={g.id} locked onClick={() => { sound.play('click'); onDemo(g.id); }} />
+              <GameCard gameId={g.id} locked={!PLAYABLE[g.id]} onClick={() => { sound.play('click'); onDemo(g.id); }} />
             </div>
           ))}
         </div>

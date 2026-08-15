@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import type { NetEvent, RoomPlayer, RoomState } from './types';
+import type { GameMoveEvent, NetEvent, RoomPlayer, RoomState, Unsubscribe } from './types';
 import { SupabaseRealtimeTransport } from './supabaseTransport';
 import { getIdentity, type PlayerIdentity } from './identity';
 
@@ -228,6 +228,18 @@ class RoomStore {
 
   finishRound() {
     this.patch({ phase: 'result' });
+  }
+
+  /** send a game move (used by playable games) */
+  sendGameMove(event: GameMoveEvent) {
+    this.transport.send(event);
+  }
+
+  /** subscribe to game moves from the peer (ignores own echoes) */
+  onGameMove(cb: (move: GameMoveEvent, fromId: string) => void): Unsubscribe {
+    return this.transport.onEvent((e, fromId) => {
+      if (e.type === 'game-move') cb(e, fromId);
+    });
   }
 
   async voteRematch() {
