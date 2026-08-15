@@ -107,6 +107,7 @@ export class SupabaseRealtimeTransport implements NetTransport {
   }
 
   async createRoom(): Promise<{ ok: boolean; code?: string; error?: string }> {
+    if (this.code && this.channel) return { ok: true, code: this.code };
     const me = getIdentity();
     let code: string | undefined;
     try {
@@ -121,7 +122,8 @@ export class SupabaseRealtimeTransport implements NetTransport {
     try {
       await this.setup(code, 'host');
       return { ok: true, code };
-    } catch {
+    } catch (err) {
+      console.error('[net] createRoom setup failed:', err);
       return { ok: false, error: 'unknown' };
     }
   }
@@ -138,12 +140,18 @@ export class SupabaseRealtimeTransport implements NetTransport {
     }
     if (this.code && this.code !== code) this.leave();
 
+    if (this.code === code) {
+      // already joined this room (e.g. React StrictMode re-running the effect)
+      return { ok: true };
+    }
+
     const me = getIdentity();
     const role: PlayerRole = hostId === me.id ? 'host' : 'guest';
 
     try {
       await this.setup(code, role);
-    } catch {
+    } catch (err) {
+      console.error('[net] joinRoom setup failed:', err);
       return { ok: false, error: 'unknown' };
     }
 
