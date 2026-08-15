@@ -16,17 +16,26 @@ function randomName(): string {
   return NAMES[Math.floor(Math.random() * NAMES.length)];
 }
 
+let cachedIdentity: PlayerIdentity | null = null;
+
 export function getIdentity(): PlayerIdentity {
+  if (cachedIdentity) return cachedIdentity;
   try {
     const raw = localStorage.getItem(KEY);
     if (raw) {
       const p = JSON.parse(raw) as PlayerIdentity;
-      if (p.id && p.name) return p;
+      if (p.id && p.name) {
+        cachedIdentity = p;
+        return p;
+      }
     }
   } catch {
     /* ignore */
   }
-  return { id: randomId(), name: randomName() };
+  const fresh = { id: randomId(), name: randomName() };
+  cachedIdentity = fresh;
+  try { localStorage.setItem(KEY, JSON.stringify(fresh)); } catch {}
+  return fresh;
 }
 
 export function saveIdentity(patch: Partial<PlayerIdentity>) {

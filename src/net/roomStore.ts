@@ -82,7 +82,7 @@ class RoomStore {
     return this.snap.room?.players ?? [];
   }
 
-  private applyPlayers(players: RoomPlayer[]) {
+private applyPlayers(players: RoomPlayer[]) {
     const me = this.snap.me;
     const roomState = this.snap.room;
     const code = roomState?.code ?? '';
@@ -102,7 +102,8 @@ class RoomStore {
     const rematchReady =
       players.length >= 2 && players.every((p) => p.rematchVote);
 
-    this.patch({ room, myPlayer, peerGone, rematchReady });
+    const newIsHost = myPlayer?.role === 'host';
+    this.patch({ room, myPlayer, peerGone, rematchReady, isHost: newIsHost });
   }
 
   private handleEvent(e: NetEvent, fromId: string) {
@@ -152,7 +153,12 @@ class RoomStore {
       this.patch({ phase: 'idle', error: 'Could not create room' });
       return;
     }
-    this.patch({ phase: 'lobby', pending: false, room: { code: res.code, hostId: this.snap.me.id, players: [], gameId: null } });
+    this.patch({
+      phase: 'lobby',
+      pending: false,
+      room: { code: res.code, hostId: this.snap.me.id, players: this.snap.room?.players ?? [], gameId: null },
+      isHost: true,
+    });
   }
 
   async joinRoom(code: string) {
@@ -169,10 +175,20 @@ class RoomStore {
       return;
     }
     if (res.pending) {
-      this.patch({ phase: 'pending', pending: true, room: { code: code.toUpperCase(), hostId: '', players: [], gameId: null } });
+      this.patch({
+        phase: 'pending',
+        pending: true,
+        room: { code: code.toUpperCase(), hostId: '', players: this.snap.room?.players ?? [], gameId: null },
+        isHost: false,
+      });
       this.startPendingTimer();
     } else {
-      this.patch({ phase: 'lobby', pending: false, room: { code: code.toUpperCase(), hostId: '', players: [], gameId: null } });
+      this.patch({
+        phase: 'lobby',
+        pending: false,
+        room: { code: code.toUpperCase(), hostId: '', players: this.snap.room?.players ?? [], gameId: null },
+        isHost: false,
+      });
     }
   }
 

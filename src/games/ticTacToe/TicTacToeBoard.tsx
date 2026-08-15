@@ -51,7 +51,7 @@ export function TicTacToeBoard({ isDemo, round, onEnd }: TicTacToeProps) {
   const store = getRoomStore();
   const snap = store.getSnapshot();
   const meId = snap.me.id;
-  const mySym: Sym = isDemo || snap.isHost ? 'X' : 'O';
+  const mySym: Sym = isDemo || snap.myPlayer?.role === 'host' ? 'X' : 'O';
   const peerName = isDemo
     ? 'Daisy'
     : (snap.room?.players.find((p) => p.id !== meId)?.name ?? 'Friend');
