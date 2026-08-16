@@ -144,8 +144,20 @@ export function GameScreen({ demo, demoGameId, demoRound, onRematch, onExit }: G
 
         {!demo && (
           <div className="flex items-center gap-2 text-sm font-bold text-white/70">
-            <span className="chip">{myVote ? 'You: rematch ✓' : 'You: waiting'}</span>
-            <span className="chip">{peerVote ? 'Friend: rematch ✓' : 'Friend: thinking'}</span>
+            <span className="chip">
+              {myVote
+                ? 'You: rematch ✓'
+                : peerVote
+                  ? 'Waiting for friend…'
+                  : 'Round over — vote for rematch'}
+            </span>
+            <span className="chip">
+              {peerVote
+                ? 'Friend: rematch ✓'
+                : myVote
+                  ? 'Waiting for you…'
+                  : 'Round over — waiting for friend'}
+            </span>
           </div>
         )}
 
