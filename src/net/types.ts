@@ -24,7 +24,7 @@ export type NetEvent =
   | { type: 'start-game'; gameId: string }
   | { type: 'rematch-vote'; fromId: string; vote: boolean }
   | { type: 'back-to-lobby' }
-  | { type: 'game-move'; game: string; round: number; cell: number; fromId: string };
+  | { type: 'game-move'; game: string; round: number; payload: Record<string, unknown>; fromId: string };
 
 /** A game move event (used by playable games). */
 export type GameMoveEvent = Extract<NetEvent, { type: 'game-move' }>;

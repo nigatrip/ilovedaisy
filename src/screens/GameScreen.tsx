@@ -6,6 +6,13 @@ import { CountdownOverlay, type CountdownStage } from '../gameShell/CountdownOve
 import { sound } from '../audio/SoundManager';
 import { DemoArena } from './DemoArena';
 import { TicTacToeBoard } from '../games/ticTacToe/TicTacToeBoard';
+import { SumoPush } from '../games/sumo/SumoPush';
+import { TugOfWar } from '../games/tug/TugOfWar';
+import { MiniFootball } from '../games/football/MiniFootball';
+import { TankDuel } from '../games/tank/TankDuel';
+import { MicroRace } from '../games/race/MicroRace';
+import { ConnectFour } from '../games/connect4/ConnectFour';
+import { TapBattle } from '../games/tapbattle/TapBattle';
 import { getRoomStore, useRoom } from '../net/roomStore';
 import { getIdentity } from '../net/identity';
 import type { CharacterColor } from '../components/characters/characterTypes';
@@ -218,6 +225,20 @@ export function GameScreen({ demo, demoGameId, demoRound, onRematch, onExit }: G
       {playing && (
         gameId === 'tictactoe' ? (
           <TicTacToeBoard key={seedRound} isDemo={!!demo} round={seedRound} onEnd={handleRoundEnd} />
+        ) : gameId === 'sumo' ? (
+          <SumoPush key={seedRound} isDemo={!!demo} round={seedRound} onEnd={handleRoundEnd} />
+        ) : gameId === 'tug' ? (
+          <TugOfWar key={seedRound} isDemo={!!demo} round={seedRound} onEnd={handleRoundEnd} />
+        ) : gameId === 'football' ? (
+          <MiniFootball key={seedRound} isDemo={!!demo} round={seedRound} onEnd={handleRoundEnd} />
+        ) : gameId === 'tank' ? (
+          <TankDuel key={seedRound} isDemo={!!demo} round={seedRound} onEnd={handleRoundEnd} />
+        ) : gameId === 'race' ? (
+          <MicroRace key={seedRound} isDemo={!!demo} round={seedRound} onEnd={handleRoundEnd} />
+        ) : gameId === 'connect4' ? (
+          <ConnectFour key={seedRound} isDemo={!!demo} round={seedRound} onEnd={handleRoundEnd} />
+        ) : gameId === 'tapbattle' ? (
+          <TapBattle key={seedRound} isDemo={!!demo} round={seedRound} onEnd={handleRoundEnd} />
         ) : (
           <DemoArena gameId={gameId} winner={computedWinner} onRoundEnd={handleRoundEnd} />
         )

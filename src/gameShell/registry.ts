@@ -101,12 +101,12 @@ export const GAME_BY_ID: Record<string, GameMeta> = Object.fromEntries(
 
 /** first release playable set (wired after the room flow milestone) */
 export const PLAYABLE: Record<string, boolean> = {
-  sumo: false,
-  tug: false,
-  football: false,
-  tank: false,
-  race: false,
+  sumo: true,
+  tug: true,
+  football: true,
+  tank: true,
+  race: true,
   tictactoe: true,
-  connect4: false,
-  tapbattle: false,
+  connect4: true,
+  tapbattle: true,
 };

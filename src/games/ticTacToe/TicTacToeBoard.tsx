@@ -86,7 +86,9 @@ export function TicTacToeBoard({ isDemo, round, onEnd }: TicTacToeProps) {
     if (isDemo) return;
     return store.onGameMove((move, fromId) => {
       if (move.game !== 'tictactoe' || move.round !== round) return;
-      applyMove(move.cell, mySym === 'X' ? 'O' : 'X', fromId);
+      if (move.payload?.type === 'tap') {
+        applyMove(move.payload.cell as number, mySym === 'X' ? 'O' : 'X', fromId);
+      }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDemo, round, mySym]);
@@ -120,7 +122,7 @@ export function TicTacToeBoard({ isDemo, round, onEnd }: TicTacToeProps) {
     sound.play('place');
     applyMove(cell, mySym);
     if (!isDemo) {
-      store.sendGameMove({ type: 'game-move', game: 'tictactoe', round, cell, fromId: meId });
+      store.sendGameMove({ type: 'game-move', game: 'tictactoe', round, payload: { type: 'tap', cell }, fromId: meId });
     }
   };
 
