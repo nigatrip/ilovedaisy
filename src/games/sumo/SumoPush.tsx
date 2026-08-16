@@ -138,11 +138,13 @@ export function SumoPush({ isDemo, round, onEnd }: SumoPushProps) {
   };
 
   useEffect(() => {
-    window.addEventListener('keydown', (e) => handleKey(e, true));
-    window.addEventListener('keyup', (e) => handleKey(e, false));
+    const handleKeyDown = (e: KeyboardEvent) => handleKey(e, true);
+    const handleKeyUp = (e: KeyboardEvent) => handleKey(e, false);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
     return () => {
-      window.removeEventListener('keydown', (e) => handleKey(e, true));
-      window.removeEventListener('keyup', (e) => handleKey(e, false));
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
 

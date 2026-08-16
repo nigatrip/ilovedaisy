@@ -195,11 +195,13 @@ const [pos, setPos] = useState({ x: -ARENA_W / 2 + 40, y: 0 });
   };
 
   useEffect(() => {
-    window.addEventListener('keydown', (e) => handleKey(e, true));
-    window.addEventListener('keyup', (e) => handleKey(e, false));
+    const handleKeyDown = (e: KeyboardEvent) => handleKey(e, true);
+    const handleKeyUp = (e: KeyboardEvent) => handleKey(e, false);
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
     return () => {
-      window.removeEventListener('keydown', (e) => handleKey(e, true));
-      window.removeEventListener('keyup', (e) => handleKey(e, false));
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
     };
   }, []);
 

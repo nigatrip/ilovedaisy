@@ -30,6 +30,7 @@ function PlayerCard({
         state={ready ? 'jump' : 'idle'}
         facing={color === 'red' ? 'right' : 'left'}
         size={96}
+        className="mx-auto"
       />
       <span className="font-display text-lg text-cream text-outline">
         {player?.name ?? (isMe ? 'You' : 'Waiting…')}

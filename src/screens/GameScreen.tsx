@@ -16,6 +16,7 @@ import { TapBattle } from '../games/tapbattle/TapBattle';
 import { getRoomStore, useRoom } from '../net/roomStore';
 import { getIdentity } from '../net/identity';
 import type { CharacterColor } from '../components/characters/characterTypes';
+import { useGameFocus } from '../hooks/useGameFocus';
 
 interface GameScreenProps {
   demo?: boolean;
@@ -219,8 +220,10 @@ export function GameScreen({ demo, demoGameId, demoRound, onRematch, onExit }: G
     );
   }
 
+  const gameContainerRef = useGameFocus(playing);
+
   return (
-    <div className="relative h-full">
+    <div className="relative h-full" ref={gameContainerRef} tabIndex={0}>
       {!playing && countdown !== null && <CountdownOverlay stage={countdown} />}
       {playing && (
         gameId === 'tictactoe' ? (

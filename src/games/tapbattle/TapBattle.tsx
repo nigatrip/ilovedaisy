@@ -118,8 +118,9 @@ export function TapBattle({ isDemo, round, onEnd }: TapBattleProps) {
   };
 
   useEffect(() => {
-    window.addEventListener('keydown', handleKey);
-    return () => window.removeEventListener('keydown', handleKey);
+    const handleKeyDown = (e: KeyboardEvent) => handleKey(e);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const handleClick = (e: React.MouseEvent) => {
