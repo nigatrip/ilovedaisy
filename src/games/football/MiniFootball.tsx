@@ -33,8 +33,25 @@ export function MiniFootball({ isDemo, round, onEnd }: MiniFootballProps) {
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false });
   const [lastKick, setLastKick] = useState(0);
   const [score, setScore] = useState({ me: 0, peer: 0 });
+  const posRef = useRef(pos);
+  const peerPosRef = useRef(peerPos);
+  const ballRef = useRef(ball);
+  const velRef = useRef(vel);
+  const peerVelRef = useRef(peerVel);
+  const keysRef = useRef(keys);
+  const lastKickRef = useRef(lastKick);
+  const scoreRef = useRef(score);
   const animRef = useRef<number | null>(null);
   const endedRef = useRef(false);
+
+  useEffect(() => { posRef.current = pos; }, [pos]);
+  useEffect(() => { peerPosRef.current = peerPos; }, [peerPos]);
+  useEffect(() => { ballRef.current = ball; }, [ball]);
+  useEffect(() => { velRef.current = vel; }, [vel]);
+  useEffect(() => { peerVelRef.current = peerVel; }, [peerVel]);
+  useEffect(() => { keysRef.current = keys; }, [keys]);
+  useEffect(() => { lastKickRef.current = lastKick; }, [lastKick]);
+  useEffect(() => { scoreRef.current = score; }, [score]);
 
   const finish = (w: 0 | 1 | 2) => {
     if (endedRef.current) return;
@@ -44,33 +61,37 @@ export function MiniFootball({ isDemo, round, onEnd }: MiniFootballProps) {
   };
 
   const resetBall = (scorer: 'me' | 'peer') => {
-    setBall({ x: 0, y: 0, vx: 0, vy: 0 });
-    setScore((s) => ({ ...s, [scorer]: s[scorer] + 1 }));
+    const ns = { ...scoreRef.current, [scorer]: scoreRef.current[scorer] + 1 };
+    setScore(ns);
+    scoreRef.current = ns;
     if (scorer === 'me') {
-      if (score.me + 1 >= 2) { finish(0); return; }
+      if (ns.me >= 2) { finish(0); return; }
     } else {
-      if (score.peer + 1 >= 2) { finish(1); return; }
+      if (ns.peer >= 2) { finish(1); return; }
     }
     setPos({ x: -FIELD_W / 2 + 50, y: 0 });
     setPeerPos({ x: FIELD_W / 2 - 50, y: 0 });
+    posRef.current = { x: -FIELD_W / 2 + 50, y: 0 };
+    peerPosRef.current = { x: FIELD_W / 2 - 50, y: 0 };
+    ballRef.current = { x: 0, y: 0, vx: 0, vy: 0 };
   };
 
-  const checkGoal = (bx: number) => {
-    if (bx <= -FIELD_W / 2 + BALL_R && Math.abs(ball.y) < GOAL_H / 2) return 'peer';
-    if (bx >= FIELD_W / 2 - BALL_R && Math.abs(ball.y) < GOAL_H / 2) return 'me';
+  const checkGoal = (bx: number, by: number) => {
+    if (bx <= -FIELD_W / 2 + BALL_R && Math.abs(by) < GOAL_H / 2) return 'peer';
+    if (bx >= FIELD_W / 2 - BALL_R && Math.abs(by) < GOAL_H / 2) return 'me';
     return null;
   };
 
   const step = () => {
     if (endedRef.current) return;
 
-    let vx = vel.x;
-    let vy = vel.y;
+    let vx = velRef.current.x;
+    let vy = velRef.current.y;
 
-    if (keys.up) vy -= 0.3;
-    if (keys.down) vy += 0.3;
-    if (keys.left) vx -= 0.3;
-    if (keys.right) vx += 0.3;
+    if (keysRef.current.up) vy -= 0.3;
+    if (keysRef.current.down) vy += 0.3;
+    if (keysRef.current.left) vx -= 0.3;
+    if (keysRef.current.right) vx += 0.3;
 
     const speed = Math.hypot(vx, vy);
     if (speed > MAX_SPEED) {
@@ -81,14 +102,14 @@ export function MiniFootball({ isDemo, round, onEnd }: MiniFootballProps) {
     vx *= FRICTION;
     vy *= FRICTION;
 
-    let nx = pos.x + vx;
-    let ny = pos.y + vy;
+    let nx = posRef.current.x + vx;
+    let ny = posRef.current.y + vy;
 
     nx = Math.max(-FIELD_W / 2 + PLAYER_R, Math.min(FIELD_W / 2 - PLAYER_R, nx));
     ny = Math.max(-FIELD_H / 2 + PLAYER_R, Math.min(FIELD_H / 2 - PLAYER_R, ny));
 
-    const dx = ball.x - nx;
-    const dy = ball.y - ny;
+    const dx = ballRef.current.x - nx;
+    const dy = ballRef.current.y - ny;
     const d = Math.hypot(dx, dy);
     if (d < PLAYER_R + BALL_R && d > 0.1) {
       const overlap = (PLAYER_R + BALL_R - d) / 2;
@@ -100,11 +121,13 @@ export function MiniFootball({ isDemo, round, onEnd }: MiniFootballProps) {
 
     setPos({ x: nx, y: ny });
     setVel({ x: vx, y: vy });
+    posRef.current = { x: nx, y: ny };
+    velRef.current = { x: vx, y: vy };
 
-    let bx = ball.x + ball.vx;
-    let by = ball.y + ball.vy;
-    let bvx = ball.vx * 0.985;
-    let bvy = ball.vy * 0.985;
+    let bx = ballRef.current.x + ballRef.current.vx;
+    let by = ballRef.current.y + ballRef.current.vy;
+    let bvx = ballRef.current.vx * 0.985;
+    let bvy = ballRef.current.vy * 0.985;
 
     if (by <= -FIELD_H / 2 + BALL_R || by >= FIELD_H / 2 - BALL_R) {
       by = Math.max(-FIELD_H / 2 + BALL_R, Math.min(FIELD_H / 2 - BALL_R, by));
@@ -131,8 +154,8 @@ export function MiniFootball({ isDemo, round, onEnd }: MiniFootballProps) {
       sound.play('hit');
     }
 
-    const p2dx = bx - peerPos.x;
-    const p2dy = by - peerPos.y;
+    const p2dx = bx - peerPosRef.current.x;
+    const p2dy = by - peerPosRef.current.y;
     const p2d = Math.hypot(p2dx, p2dy);
     if (p2d < PLAYER_R + BALL_R && p2d > 0.1) {
       const overlap = (PLAYER_R + BALL_R - p2d) / 2;
@@ -144,8 +167,9 @@ export function MiniFootball({ isDemo, round, onEnd }: MiniFootballProps) {
     }
 
     setBall({ x: bx, y: by, vx: bvx, vy: bvy });
+    ballRef.current = { x: bx, y: by, vx: bvx, vy: bvy };
 
-    const goal = checkGoal(bx);
+    const goal = checkGoal(bx, by);
     if (goal) {
       resetBall(goal);
       sound.play(goal === 'me' ? 'win' : 'lose');
@@ -181,12 +205,12 @@ export function MiniFootball({ isDemo, round, onEnd }: MiniFootballProps) {
         type: 'game-move',
         game: 'football',
         round,
-        payload: { type: 'state', x: pos.x, y: pos.y, vx: vel.x, vy: vel.y },
+        payload: { type: 'state', x: posRef.current.x, y: posRef.current.y, vx: velRef.current.x, vy: velRef.current.y },
         fromId: meId,
       });
     }, 33);
     return () => window.clearInterval(interval);
-  }, [isDemo, round, pos, vel, meId]);
+  }, [isDemo, round, meId]);
 
   useEffect(() => {
     if (isDemo) return;
@@ -195,29 +219,31 @@ export function MiniFootball({ isDemo, round, onEnd }: MiniFootballProps) {
         type: 'game-move',
         game: 'football',
         round,
-        payload: { type: 'ball', x: ball.x, y: ball.y, vx: ball.vx, vy: ball.vy },
+        payload: { type: 'ball', x: ballRef.current.x, y: ballRef.current.y, vx: ballRef.current.vx, vy: ballRef.current.vy },
         fromId: meId,
       });
     }, 33);
     return () => window.clearInterval(interval);
-  }, [isDemo, round, ball, meId]);
+  }, [isDemo, round, meId]);
 
   const canKick = () => {
-    const dx = ball.x - pos.x;
-    const dy = ball.y - pos.y;
-    return Math.hypot(dx, dy) < PLAYER_R + BALL_R + 5 && Date.now() - lastKick > KICK_COOLDOWN;
+    const dx = ballRef.current.x - posRef.current.x;
+    const dy = ballRef.current.y - posRef.current.y;
+    return Math.hypot(dx, dy) < PLAYER_R + BALL_R + 5 && Date.now() - lastKickRef.current > KICK_COOLDOWN;
   };
 
   const handleKick = () => {
     if (!canKick()) { sound.play('hit'); return; }
-    const dx = ball.x - pos.x;
-    const dy = ball.y - pos.y;
+    const dx = ballRef.current.x - posRef.current.x;
+    const dy = ballRef.current.y - posRef.current.y;
     const d = Math.hypot(dx, dy) || 1;
     const kvx = (dx / d) * KICK_POWER;
     const kvy = (dy / d) * KICK_POWER;
 
     setBall((b) => ({ ...b, vx: kvx, vy: kvy }));
+    ballRef.current = { ...ballRef.current, vx: kvx, vy: kvy };
     setLastKick(Date.now());
+    lastKickRef.current = Date.now();
     store.sendGameMove({
       type: 'game-move',
       game: 'football',
@@ -230,10 +256,10 @@ export function MiniFootball({ isDemo, round, onEnd }: MiniFootballProps) {
 
   const handleKey = (e: KeyboardEvent, down: boolean) => {
     const k = e.key.toLowerCase();
-    if (k === 'w' || k === 'arrowup') setKeys((s) => ({ ...s, up: down }));
-    if (k === 's' || k === 'arrowdown') setKeys((s) => ({ ...s, down: down }));
-    if (k === 'a' || k === 'arrowleft') setKeys((s) => ({ ...s, left: down }));
-    if (k === 'd' || k === 'arrowright') setKeys((s) => ({ ...s, right: down }));
+    if (k === 'w' || k === 'arrowup') { keysRef.current = { ...keysRef.current, up: down }; setKeys(keysRef.current); }
+    if (k === 's' || k === 'arrowdown') { keysRef.current = { ...keysRef.current, down: down }; setKeys(keysRef.current); }
+    if (k === 'a' || k === 'arrowleft') { keysRef.current = { ...keysRef.current, left: down }; setKeys(keysRef.current); }
+    if (k === 'd' || k === 'arrowright') { keysRef.current = { ...keysRef.current, right: down }; setKeys(keysRef.current); }
     if ((k === ' ' || k === 'enter') && down) handleKick();
   };
 

@@ -25,8 +25,15 @@ export function TugOfWar({ isDemo, round, onEnd }: TugOfWarProps) {
   const [ropeX, setRopeX] = useState(0);
   const [vel, setVel] = useState(0);
   const [pulling, setPulling] = useState(false);
+  const ropeXRef = useRef(ropeX);
+  const velRef = useRef(vel);
+  const pullingRef = useRef(pulling);
   const animRef = useRef<number | null>(null);
   const endedRef = useRef(false);
+
+  useEffect(() => { ropeXRef.current = ropeX; }, [ropeX]);
+  useEffect(() => { velRef.current = vel; }, [vel]);
+  useEffect(() => { pullingRef.current = pulling; }, [pulling]);
 
   const finish = (w: 0 | 1 | 2) => {
     if (endedRef.current) return;
@@ -38,10 +45,10 @@ export function TugOfWar({ isDemo, round, onEnd }: TugOfWarProps) {
   const step = () => {
     if (endedRef.current) return;
 
-    let v = vel;
+    let v = velRef.current;
     v *= FRICTION;
 
-    if (pulling) {
+    if (pullingRef.current) {
       const myDir = myPlayer?.role === 'host' ? -1 : 1;
       v += myDir * PULL_SPEED;
     }
@@ -49,12 +56,14 @@ export function TugOfWar({ isDemo, round, onEnd }: TugOfWarProps) {
     if (v > MAX_SPEED) v = MAX_SPEED;
     if (v < -MAX_SPEED) v = -MAX_SPEED;
 
-    let nx = ropeX + v;
+    let nx = ropeXRef.current + v;
     if (nx < -ROPE_LENGTH / 2) nx = -ROPE_LENGTH / 2;
     if (nx > ROPE_LENGTH / 2) nx = ROPE_LENGTH / 2;
 
     setRopeX(nx);
     setVel(v);
+    ropeXRef.current = nx;
+    velRef.current = v;
 
     if (nx <= -ROPE_LENGTH / 2 + WIN_ZONE) {
       finish(myPlayer?.role === 'host' ? 0 : 1);
@@ -102,6 +111,7 @@ export function TugOfWar({ isDemo, round, onEnd }: TugOfWarProps) {
   const handleKey = (e: KeyboardEvent, down: boolean) => {
     if (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
       e.preventDefault();
+      pullingRef.current = down;
       setPulling(down);
       if (down) sound.play('pop');
     }

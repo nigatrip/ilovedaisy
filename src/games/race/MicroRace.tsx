@@ -34,8 +34,23 @@ export function MicroRace({ isDemo, round, onEnd }: MicroRaceProps) {
   const [dist, setDist] = useState(0);
   const [peerDist, setPeerDist] = useState(0);
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false });
+  const keysRef = useRef(keys);
+  const velRef = useRef(vel);
+  const peerVelRef = useRef(peerVel);
+  const laneRef = useRef(lane);
+  const peerLaneRef = useRef(peerLane);
+  const distRef = useRef(dist);
+  const peerDistRef = useRef(peerDist);
   const animRef = useRef<number | null>(null);
   const endedRef = useRef(false);
+
+  useEffect(() => { keysRef.current = keys; }, [keys]);
+  useEffect(() => { velRef.current = vel; }, [vel]);
+  useEffect(() => { peerVelRef.current = peerVel; }, [peerVel]);
+  useEffect(() => { laneRef.current = lane; }, [lane]);
+  useEffect(() => { peerLaneRef.current = peerLane; }, [peerLane]);
+  useEffect(() => { distRef.current = dist; }, [dist]);
+  useEffect(() => { peerDistRef.current = peerDist; }, [peerDist]);
 
   const finish = (w: 0 | 1 | 2) => {
     if (endedRef.current) return;
@@ -49,12 +64,12 @@ export function MicroRace({ isDemo, round, onEnd }: MicroRaceProps) {
   const step = () => {
     if (endedRef.current) return;
 
-    let v = vel;
-    if (keys.up) v = Math.min(v + ACCEL, MAX_SPEED);
-    if (keys.down) v = Math.max(v - BRAKE, -MAX_SPEED * 0.4);
+    let v = velRef.current;
+    if (keysRef.current.up) v = Math.min(v + ACCEL, MAX_SPEED);
+    if (keysRef.current.down) v = Math.max(v - BRAKE, -MAX_SPEED * 0.4);
     v *= FRICTION;
 
-    let ndist = dist + v;
+    let ndist = distRef.current + v;
     if (ndist >= LAP_DIST) {
       finish(0);
       return;
@@ -62,17 +77,20 @@ export function MicroRace({ isDemo, round, onEnd }: MicroRaceProps) {
 
     setDist(ndist);
     setVel(v);
+    distRef.current = ndist;
+    velRef.current = v;
 
-    if (keys.left && lane > 0) setLane((l) => l - 1);
-    if (keys.right && lane < LANE_COUNT - 1) setLane((l) => l + 1);
+    if (keysRef.current.left && laneRef.current > 0) { laneRef.current = laneRef.current - 1; setLane(laneRef.current); }
+    if (keysRef.current.right && laneRef.current < LANE_COUNT - 1) { laneRef.current = laneRef.current + 1; setLane(laneRef.current); }
 
-    const dx = peerDist - dist;
-    if (Math.abs(dx) < 30 && lane === peerLane && peerVel > v - 1) {
-      setVel((v) => Math.max(v - 1, 0));
+    const dx = peerDistRef.current - ndist;
+    if (Math.abs(dx) < 30 && laneRef.current === peerLaneRef.current && peerVelRef.current > v - 1) {
+      velRef.current = Math.max(v - 1, 0);
+      setVel(velRef.current);
       sound.play('hit');
     }
 
-    if (peerDist >= LAP_DIST) {
+    if (peerDistRef.current >= LAP_DIST) {
       finish(1);
       return;
     }
@@ -104,19 +122,19 @@ export function MicroRace({ isDemo, round, onEnd }: MicroRaceProps) {
         type: 'game-move',
         game: 'race',
         round,
-        payload: { type: 'state', vel, dist, lane },
+        payload: { type: 'state', vel: velRef.current, dist: distRef.current, lane: laneRef.current },
         fromId: meId,
       });
     }, 33);
     return () => window.clearInterval(interval);
-  }, [isDemo, round, vel, dist, lane, meId]);
+  }, [isDemo, round, meId]);
 
   const handleKey = (e: KeyboardEvent, down: boolean) => {
     const k = e.key.toLowerCase();
-    if (k === 'w' || k === 'arrowup') setKeys((s) => ({ ...s, up: down }));
-    if (k === 's' || k === 'arrowdown') setKeys((s) => ({ ...s, down: down }));
-    if (k === 'a' || k === 'arrowleft') setKeys((s) => ({ ...s, left: down }));
-    if (k === 'd' || k === 'arrowright') setKeys((s) => ({ ...s, right: down }));
+    if (k === 'w' || k === 'arrowup') { keysRef.current = { ...keysRef.current, up: down }; setKeys(keysRef.current); }
+    if (k === 's' || k === 'arrowdown') { keysRef.current = { ...keysRef.current, down: down }; setKeys(keysRef.current); }
+    if (k === 'a' || k === 'arrowleft') { keysRef.current = { ...keysRef.current, left: down }; setKeys(keysRef.current); }
+    if (k === 'd' || k === 'arrowright') { keysRef.current = { ...keysRef.current, right: down }; setKeys(keysRef.current); }
   };
 
   useEffect(() => {

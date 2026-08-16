@@ -107,6 +107,7 @@ export function GameScreen({ demo, demoGameId, demoRound, onRematch, onExit }: G
   }, [room.phase, room.rematchReady, demo]);
 
   const actions = getRoomStore();
+  const gameContainerRef = useGameFocus(playing);
 
   if (room.peerGone) {
     return (
@@ -219,8 +220,6 @@ export function GameScreen({ demo, demoGameId, demoRound, onRematch, onExit }: G
       </div>
     );
   }
-
-  const gameContainerRef = useGameFocus(playing);
 
   return (
     <div className="relative h-full" ref={gameContainerRef} tabIndex={0}>

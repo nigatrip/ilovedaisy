@@ -27,7 +27,7 @@ export function TankDuel({ isDemo, round, onEnd }: TankDuelProps) {
   const meId = snap.me.id;
   const peer = snap.room?.players.find((p) => p.id !== meId);
 
-const [pos, setPos] = useState({ x: -ARENA_W / 2 + 40, y: 0 });
+  const [pos, setPos] = useState({ x: -ARENA_W / 2 + 40, y: 0 });
   const [peerPos, setPeerPos] = useState({ x: ARENA_W / 2 - 40, y: 0 });
   const [angle, setAngle] = useState(0);
   const [peerAngle, setPeerAngle] = useState(Math.PI);
@@ -39,8 +39,23 @@ const [pos, setPos] = useState({ x: -ARENA_W / 2 + 40, y: 0 });
   const [health, setHealth] = useState(MAX_HEALTH);
   const [peerHealth, setPeerHealth] = useState(MAX_HEALTH);
   const [lastShot, setLastShot] = useState(0);
+  const keysRef = useRef(keys);
+  const posRef = useRef(pos);
+  const peerPosRef = useRef(peerPos);
+  const angleRef = useRef(angle);
+  const velRef = useRef(vel);
+  const peerVelRef = useRef(peerVel);
+  const lastShotRef = useRef(lastShot);
   const animRef = useRef<number | null>(null);
   const endedRef = useRef(false);
+
+  useEffect(() => { keysRef.current = keys; }, [keys]);
+  useEffect(() => { posRef.current = pos; }, [pos]);
+  useEffect(() => { peerPosRef.current = peerPos; }, [peerPos]);
+  useEffect(() => { angleRef.current = angle; }, [angle]);
+  useEffect(() => { velRef.current = vel; }, [vel]);
+  useEffect(() => { peerVelRef.current = peerVel; }, [peerVel]);
+  useEffect(() => { lastShotRef.current = lastShot; }, [lastShot]);
 
   const finish = (w: 0 | 1 | 2) => {
     if (endedRef.current) return;
@@ -52,19 +67,19 @@ const [pos, setPos] = useState({ x: -ARENA_W / 2 + 40, y: 0 });
   const step = () => {
     if (endedRef.current) return;
 
-    let vx = vel.x;
-    let vy = vel.y;
+    let vx = velRef.current.x;
+    let vy = velRef.current.y;
 
-    if (keys.up) {
-      vx += Math.cos(angle) * 0.15;
-      vy += Math.sin(angle) * 0.15;
+    if (keysRef.current.up) {
+      vx += Math.cos(angleRef.current) * 0.15;
+      vy += Math.sin(angleRef.current) * 0.15;
     }
-    if (keys.down) {
-      vx -= Math.cos(angle) * 0.08;
-      vy -= Math.sin(angle) * 0.08;
+    if (keysRef.current.down) {
+      vx -= Math.cos(angleRef.current) * 0.08;
+      vy -= Math.sin(angleRef.current) * 0.08;
     }
-    if (keys.left) setAngle((a) => a - 0.06);
-    if (keys.right) setAngle((a) => a + 0.06);
+    if (keysRef.current.left) setAngle((a) => a - 0.06);
+    if (keysRef.current.right) setAngle((a) => a + 0.06);
 
     const speed = Math.hypot(vx, vy);
     if (speed > MAX_SPEED) {
@@ -75,14 +90,16 @@ const [pos, setPos] = useState({ x: -ARENA_W / 2 + 40, y: 0 });
     vx *= FRICTION;
     vy *= FRICTION;
 
-    let nx = pos.x + vx;
-    let ny = pos.y + vy;
+    let nx = posRef.current.x + vx;
+    let ny = posRef.current.y + vy;
 
     nx = Math.max(-ARENA_W / 2 + TANK_R, Math.min(ARENA_W / 2 - TANK_R, nx));
     ny = Math.max(-ARENA_H / 2 + TANK_R, Math.min(ARENA_H / 2 - TANK_R, ny));
 
     setPos({ x: nx, y: ny });
     setVel({ x: vx, y: vy });
+    posRef.current = { x: nx, y: ny };
+    velRef.current = { x: vx, y: vy };
 
     setBullets((prev) => {
       const next = prev.map((b) => ({
@@ -91,8 +108,8 @@ const [pos, setPos] = useState({ x: -ARENA_W / 2 + 40, y: 0 });
         y: b.y + b.vy,
       })).filter((b) => {
         if (b.x < -ARENA_W / 2 || b.x > ARENA_W / 2 || b.y < -ARENA_H / 2 || b.y > ARENA_H / 2) return false;
-        const dx = b.x - peerPos.x;
-        const dy = b.y - peerPos.y;
+        const dx = b.x - peerPosRef.current.x;
+        const dy = b.y - peerPosRef.current.y;
         if (Math.hypot(dx, dy) < TANK_R + BULLET_R) {
           setPeerHealth((h) => {
             const nh = h - 1;
@@ -114,8 +131,8 @@ const [pos, setPos] = useState({ x: -ARENA_W / 2 + 40, y: 0 });
         y: b.y + b.vy,
       })).filter((b) => {
         if (b.x < -ARENA_W / 2 || b.x > ARENA_W / 2 || b.y < -ARENA_H / 2 || b.y > ARENA_H / 2) return false;
-        const dx = b.x - pos.x;
-        const dy = b.y - pos.y;
+        const dx = b.x - posRef.current.x;
+        const dy = b.y - posRef.current.y;
         if (Math.hypot(dx, dy) < TANK_R + BULLET_R) {
           setHealth((h) => {
             const nh = h - 1;
@@ -160,21 +177,22 @@ const [pos, setPos] = useState({ x: -ARENA_W / 2 + 40, y: 0 });
         type: 'game-move',
         game: 'tank',
         round,
-        payload: { type: 'state', x: pos.x, y: pos.y, angle, vx: vel.x, vy: vel.y },
+        payload: { type: 'state', x: posRef.current.x, y: posRef.current.y, angle: angleRef.current, vx: velRef.current.x, vy: velRef.current.y },
         fromId: meId,
       });
     }, 33);
     return () => window.clearInterval(interval);
-  }, [isDemo, round, pos, angle, vel, meId]);
+  }, [isDemo, round, meId]);
 
   const handleShoot = () => {
-    if (Date.now() - lastShot < SHOOT_COOLDOWN) { sound.play('hit'); return; }
-    const vx = Math.cos(angle) * BULLET_SPEED;
-    const vy = Math.sin(angle) * BULLET_SPEED;
-    const bx = pos.x + Math.cos(angle) * (TANK_R + BULLET_R);
-    const by = pos.y + Math.sin(angle) * (TANK_R + BULLET_R);
+    if (Date.now() - lastShotRef.current < SHOOT_COOLDOWN) { sound.play('hit'); return; }
+    const vx = Math.cos(angleRef.current) * BULLET_SPEED;
+    const vy = Math.sin(angleRef.current) * BULLET_SPEED;
+    const bx = posRef.current.x + Math.cos(angleRef.current) * (TANK_R + BULLET_R);
+    const by = posRef.current.y + Math.sin(angleRef.current) * (TANK_R + BULLET_R);
     setBullets((b) => [...b, { x: bx, y: by, vx, vy, owner: meId }]);
     setLastShot(Date.now());
+    lastShotRef.current = Date.now();
     store.sendGameMove({
       type: 'game-move',
       game: 'tank',
@@ -187,10 +205,10 @@ const [pos, setPos] = useState({ x: -ARENA_W / 2 + 40, y: 0 });
 
   const handleKey = (e: KeyboardEvent, down: boolean) => {
     const k = e.key.toLowerCase();
-    if (k === 'w' || k === 'arrowup') setKeys((s) => ({ ...s, up: down }));
-    if (k === 's' || k === 'arrowdown') setKeys((s) => ({ ...s, down: down }));
-    if (k === 'a' || k === 'arrowleft') setKeys((s) => ({ ...s, left: down }));
-    if (k === 'd' || k === 'arrowright') setKeys((s) => ({ ...s, right: down }));
+    if (k === 'w' || k === 'arrowup') { keysRef.current = { ...keysRef.current, up: down }; setKeys(keysRef.current); }
+    if (k === 's' || k === 'arrowdown') { keysRef.current = { ...keysRef.current, down: down }; setKeys(keysRef.current); }
+    if (k === 'a' || k === 'arrowleft') { keysRef.current = { ...keysRef.current, left: down }; setKeys(keysRef.current); }
+    if (k === 'd' || k === 'arrowright') { keysRef.current = { ...keysRef.current, right: down }; setKeys(keysRef.current); }
     if ((k === ' ' || k === 'enter') && down) handleShoot();
   };
 

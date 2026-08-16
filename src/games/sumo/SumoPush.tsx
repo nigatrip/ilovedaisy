@@ -26,8 +26,19 @@ export function SumoPush({ isDemo, round, onEnd }: SumoPushProps) {
   const [vel, setVel] = useState({ x: 0, y: 0 });
   const [peerVel, setPeerVel] = useState({ x: 0, y: 0 });
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false });
+  const keysRef = useRef(keys);
+  const posRef = useRef(pos);
+  const velRef = useRef(vel);
+  const peerPosRef = useRef(peerPos);
+  const peerVelRef = useRef(peerVel);
   const animRef = useRef<number | null>(null);
   const endedRef = useRef(false);
+
+  useEffect(() => { keysRef.current = keys; }, [keys]);
+  useEffect(() => { posRef.current = pos; }, [pos]);
+  useEffect(() => { velRef.current = vel; }, [vel]);
+  useEffect(() => { peerPosRef.current = peerPos; }, [peerPos]);
+  useEffect(() => { peerVelRef.current = peerVel; }, [peerVel]);
 
   const finish = (w: 0 | 1 | 2) => {
     if (endedRef.current) return;
@@ -41,13 +52,13 @@ export function SumoPush({ isDemo, round, onEnd }: SumoPushProps) {
   const step = () => {
     if (endedRef.current) return;
 
-    let vx = vel.x;
-    let vy = vel.y;
+    let vx = velRef.current.x;
+    let vy = velRef.current.y;
 
-    if (keys.up) vy -= 0.35;
-    if (keys.down) vy += 0.35;
-    if (keys.left) vx -= 0.35;
-    if (keys.right) vx += 0.35;
+    if (keysRef.current.up) vy -= 0.35;
+    if (keysRef.current.down) vy += 0.35;
+    if (keysRef.current.left) vx -= 0.35;
+    if (keysRef.current.right) vx += 0.35;
 
     const speed = Math.hypot(vx, vy);
     if (speed > MAX_SPEED) {
@@ -58,8 +69,8 @@ export function SumoPush({ isDemo, round, onEnd }: SumoPushProps) {
     vx *= FRICTION;
     vy *= FRICTION;
 
-    let nx = pos.x + vx;
-    let ny = pos.y + vy;
+    let nx = posRef.current.x + vx;
+    let ny = posRef.current.y + vy;
     const dist = Math.hypot(nx, ny);
     if (dist > PAD_RADIUS - CHAR_RADIUS) {
       const scale = (PAD_RADIUS - CHAR_RADIUS) / dist;
@@ -71,9 +82,11 @@ export function SumoPush({ isDemo, round, onEnd }: SumoPushProps) {
 
     setPos({ x: nx, y: ny });
     setVel({ x: vx, y: vy });
+    posRef.current = { x: nx, y: ny };
+    velRef.current = { x: vx, y: vy };
 
-    const dx = peerPos.x - pos.x;
-    const dy = peerPos.y - pos.y;
+    const dx = peerPosRef.current.x - posRef.current.x;
+    const dy = peerPosRef.current.y - posRef.current.y;
     const d = Math.hypot(dx, dy);
     if (d < CHAR_RADIUS * 2 && d > 0.1) {
       const overlap = (CHAR_RADIUS * 2 - d) / 2;
@@ -88,7 +101,7 @@ export function SumoPush({ isDemo, round, onEnd }: SumoPushProps) {
     }
 
     const meOut = checkOut({ x: nx, y: ny });
-    const peerOut = checkOut(peerPos);
+    const peerOut = checkOut(peerPosRef.current);
     if (meOut || peerOut) {
       if (meOut && !peerOut) finish(1);
       else if (peerOut && !meOut) finish(0);
@@ -122,19 +135,19 @@ export function SumoPush({ isDemo, round, onEnd }: SumoPushProps) {
         type: 'game-move',
         game: 'sumo',
         round,
-        payload: { type: 'pos', x: pos.x, y: pos.y, vx: vel.x, vy: vel.y },
+        payload: { type: 'pos', x: posRef.current.x, y: posRef.current.y, vx: velRef.current.x, vy: velRef.current.y },
         fromId: meId,
       });
     }, 33);
     return () => window.clearInterval(interval);
-  }, [isDemo, round, pos, vel, meId]);
+  }, [isDemo, round, meId]);
 
   const handleKey = (e: KeyboardEvent, down: boolean) => {
     const k = e.key.toLowerCase();
-    if (k === 'w' || k === 'arrowup') setKeys((s) => ({ ...s, up: down }));
-    if (k === 's' || k === 'arrowdown') setKeys((s) => ({ ...s, down: down }));
-    if (k === 'a' || k === 'arrowleft') setKeys((s) => ({ ...s, left: down }));
-    if (k === 'd' || k === 'arrowright') setKeys((s) => ({ ...s, right: down }));
+    if (k === 'w' || k === 'arrowup') { keysRef.current = { ...keysRef.current, up: down }; setKeys(keysRef.current); }
+    if (k === 's' || k === 'arrowdown') { keysRef.current = { ...keysRef.current, down: down }; setKeys(keysRef.current); }
+    if (k === 'a' || k === 'arrowleft') { keysRef.current = { ...keysRef.current, left: down }; setKeys(keysRef.current); }
+    if (k === 'd' || k === 'arrowright') { keysRef.current = { ...keysRef.current, right: down }; setKeys(keysRef.current); }
   };
 
   useEffect(() => {

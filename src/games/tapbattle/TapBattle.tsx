@@ -24,8 +24,15 @@ export function TapBattle({ isDemo, round, onEnd }: TapBattleProps) {
   const [winner, setWinner] = useState<0 | 1 | 2 | null>(null);
   const [countdown, setCountdown] = useState(3);
   const [started, setStarted] = useState(false);
+  const scoreRef = useRef(score);
+  const peerScoreRef = useRef(peerScore);
+  const startedRef = useRef(started);
   const animRef = useRef<number | null>(null);
   const endedRef = useRef(false);
+
+  useEffect(() => { scoreRef.current = score; }, [score]);
+  useEffect(() => { peerScoreRef.current = peerScore; }, [peerScore]);
+  useEffect(() => { startedRef.current = started; }, [started]);
 
   const finish = (w: 0 | 1 | 2) => {
     if (endedRef.current) return;
@@ -36,10 +43,11 @@ export function TapBattle({ isDemo, round, onEnd }: TapBattleProps) {
   };
 
   const tap = () => {
-    if (!started || endedRef.current) return;
+    if (!startedRef.current || endedRef.current) return;
     setScore((s) => {
       const ns = s + TAP_POWER;
       if (ns >= 100) finish(0);
+      scoreRef.current = ns;
       return ns;
     });
     sound.play('pop');
@@ -47,7 +55,7 @@ export function TapBattle({ isDemo, round, onEnd }: TapBattleProps) {
       type: 'game-move',
       game: 'tapbattle',
       round,
-      payload: { type: 'tap', score: score + TAP_POWER },
+      payload: { type: 'tap', score: scoreRef.current + TAP_POWER },
       fromId: meId,
     });
   };
@@ -74,7 +82,7 @@ export function TapBattle({ isDemo, round, onEnd }: TapBattleProps) {
     setTimeLeft((t) => {
       const nt = t - 16;
       if (nt <= 0) {
-        finish(score > peerScore ? 0 : peerScore > score ? 1 : 2);
+        finish(scoreRef.current > peerScoreRef.current ? 0 : peerScoreRef.current > scoreRef.current ? 1 : 2);
         return 0;
       }
       return nt;
@@ -82,9 +90,11 @@ export function TapBattle({ isDemo, round, onEnd }: TapBattleProps) {
 
     setScore((s) => Math.max(0, s * DECAY));
     setPeerScore((s) => Math.max(0, s * DECAY));
+    scoreRef.current = Math.max(0, scoreRef.current * DECAY);
+    peerScoreRef.current = Math.max(0, peerScoreRef.current * DECAY);
 
-    if (score >= 100) finish(0);
-    else if (peerScore >= 100) finish(1);
+    if (scoreRef.current >= 100) finish(0);
+    else if (peerScoreRef.current >= 100) finish(1);
     else animRef.current = requestAnimationFrame(tick);
   };
 
@@ -103,12 +113,12 @@ export function TapBattle({ isDemo, round, onEnd }: TapBattleProps) {
         type: 'game-move',
         game: 'tapbattle',
         round,
-        payload: { type: 'sync', score },
+        payload: { type: 'sync', score: scoreRef.current },
         fromId: meId,
       });
     }, 100);
     return () => window.clearInterval(interval);
-  }, [isDemo, round, score, meId]);
+  }, [isDemo, round, meId]);
 
   const handleKey = (e: KeyboardEvent) => {
     if (e.key === ' ' || e.key === 'Enter' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
