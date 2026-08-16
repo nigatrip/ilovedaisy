@@ -22,6 +22,8 @@ export function TugOfWar({ isDemo, round, onEnd }: TugOfWarProps) {
   const myPlayer = snap.myPlayer;
   const peer = snap.room?.players.find((p) => p.id !== meId);
 
+  const myPlayerRoleHost = myPlayer?.role === 'host';
+
   const [ropeX, setRopeX] = useState(0);
   const [vel, setVel] = useState(0);
   const [pulling, setPulling] = useState(false);
@@ -159,7 +161,7 @@ export function TugOfWar({ isDemo, round, onEnd }: TugOfWarProps) {
 
         <div style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)' }}>
           <Character
-            color="red"
+            color={myPlayerRoleHost ? 'red' : 'blue'}
             state={pulling ? 'pull' : 'idle'}
             facing="right"
             size={80}
@@ -167,7 +169,7 @@ export function TugOfWar({ isDemo, round, onEnd }: TugOfWarProps) {
         </div>
         <div style={{ position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)' }}>
           <Character
-            color="blue"
+            color={myPlayerRoleHost ? 'blue' : 'red'}
             state={peerPulling ? 'pull' : 'idle'}
             facing="left"
             size={80}

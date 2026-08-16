@@ -26,11 +26,12 @@ export function TankDuel({ isDemo, round, onEnd }: TankDuelProps) {
   const snap = store.getSnapshot();
   const meId = snap.me.id;
   const peer = snap.room?.players.find((p) => p.id !== meId);
+  const isHost = snap.myPlayer?.role === 'host';
 
-  const [pos, setPos] = useState({ x: -ARENA_W / 2 + 40, y: 0 });
-  const [peerPos, setPeerPos] = useState({ x: ARENA_W / 2 - 40, y: 0 });
-  const [angle, setAngle] = useState(0);
-  const [peerAngle, setPeerAngle] = useState(Math.PI);
+  const [pos, setPos] = useState(() => ({ x: isHost ? -ARENA_W / 2 + 40 : ARENA_W / 2 - 40, y: 0 }));
+  const [peerPos, setPeerPos] = useState(() => ({ x: isHost ? ARENA_W / 2 - 40 : -ARENA_W / 2 + 40, y: 0 }));
+  const [angle, setAngle] = useState(() => (isHost ? 0 : Math.PI));
+  const [peerAngle, setPeerAngle] = useState(() => (isHost ? Math.PI : 0));
   const [vel, setVel] = useState({ x: 0, y: 0 });
   const [peerVel, setPeerVel] = useState({ x: 0, y: 0 });
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false });
@@ -283,7 +284,7 @@ export function TankDuel({ isDemo, round, onEnd }: TankDuelProps) {
           }}
         >
           <Character
-            color="red"
+            color={isHost ? 'red' : 'blue'}
             state={Math.hypot(vel.x, vel.y) > 0.3 ? 'run' : 'idle'}
             facing={Math.cos(angle) > 0 ? 'right' : 'left'}
             size={TANK_R * 2.8}
@@ -301,7 +302,7 @@ export function TankDuel({ isDemo, round, onEnd }: TankDuelProps) {
           }}
         >
           <Character
-            color="blue"
+            color={isHost ? 'blue' : 'red'}
             state={Math.hypot(peerVel.x, peerVel.y) > 0.3 ? 'run' : 'idle'}
             facing={Math.cos(peerAngle) > 0 ? 'right' : 'left'}
             size={TANK_R * 2.8}

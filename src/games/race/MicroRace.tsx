@@ -26,11 +26,12 @@ export function MicroRace({ isDemo, round, onEnd }: MicroRaceProps) {
   const snap = store.getSnapshot();
   const meId = snap.me.id;
   const peer = snap.room?.players.find((p) => p.id !== meId);
+  const isHost = snap.myPlayer?.role === 'host';
 
   const [vel, setVel] = useState(0);
   const [peerVel, setPeerVel] = useState(0);
-  const [lane, setLane] = useState(0);
-  const [peerLane, setPeerLane] = useState(LANE_COUNT - 1);
+  const [lane, setLane] = useState(() => (isHost ? 0 : LANE_COUNT - 1));
+  const [peerLane, setPeerLane] = useState(() => (isHost ? LANE_COUNT - 1 : 0));
   const [dist, setDist] = useState(0);
   const [peerDist, setPeerDist] = useState(0);
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false });
@@ -186,7 +187,7 @@ export function MicroRace({ isDemo, round, onEnd }: MicroRaceProps) {
           style={{ left: `${myX + TRACK_W / 2 - CAR_W / 2}px`, top: `${laneY(lane) - CAR_H / 2}px` }}
         >
           <Character
-            color="red"
+            color={isHost ? 'red' : 'blue'}
             state={vel > 1 ? 'run' : 'idle'}
             facing="right"
             size={CAR_H * 1.8}
@@ -196,7 +197,7 @@ export function MicroRace({ isDemo, round, onEnd }: MicroRaceProps) {
           style={{ left: `${peerX + TRACK_W / 2 - CAR_W / 2}px`, top: `${laneY(peerLane) - CAR_H / 2}px` }}
         >
           <Character
-            color="blue"
+            color={isHost ? 'blue' : 'red'}
             state={peerVel > 1 ? 'run' : 'idle'}
             facing="right"
             size={CAR_H * 1.8}

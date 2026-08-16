@@ -24,9 +24,10 @@ export function MiniFootball({ isDemo, round, onEnd }: MiniFootballProps) {
   const snap = store.getSnapshot();
   const meId = snap.me.id;
   const peer = snap.room?.players.find((p) => p.id !== meId);
+  const isHost = snap.myPlayer?.role === 'host';
 
-  const [pos, setPos] = useState({ x: -FIELD_W / 2 + 50, y: 0 });
-  const [peerPos, setPeerPos] = useState({ x: FIELD_W / 2 - 50, y: 0 });
+  const [pos, setPos] = useState(() => ({ x: isHost ? -FIELD_W / 2 + 50 : FIELD_W / 2 - 50, y: 0 }));
+  const [peerPos, setPeerPos] = useState(() => ({ x: isHost ? FIELD_W / 2 - 50 : -FIELD_W / 2 + 50, y: 0 }));
   const [ball, setBall] = useState({ x: 0, y: 0, vx: 0, vy: 0 });
   const [vel, setVel] = useState({ x: 0, y: 0 });
   const [peerVel, setPeerVel] = useState({ x: 0, y: 0 });
@@ -315,7 +316,7 @@ export function MiniFootball({ isDemo, round, onEnd }: MiniFootballProps) {
           style={{ left: `${pos.x + FIELD_W / 2 - PLAYER_R * 1.1}px`, top: `${pos.y + FIELD_H / 2 - PLAYER_R * 1.1}px` }}
         >
           <Character
-            color="red"
+            color={isHost ? 'red' : 'blue'}
             state={Math.hypot(vel.x, vel.y) > 0.5 ? 'run' : 'idle'}
             facing={vel.x > 0 ? 'right' : 'left'}
             size={PLAYER_R * 2.2}
@@ -325,7 +326,7 @@ export function MiniFootball({ isDemo, round, onEnd }: MiniFootballProps) {
           style={{ left: `${peerPos.x + FIELD_W / 2 - PLAYER_R * 1.1}px`, top: `${peerPos.y + FIELD_H / 2 - PLAYER_R * 1.1}px` }}
         >
           <Character
-            color="blue"
+            color={isHost ? 'blue' : 'red'}
             state={Math.hypot(peerVel.x, peerVel.y) > 0.5 ? 'run' : 'idle'}
             facing={peerVel.x > 0 ? 'right' : 'left'}
             size={PLAYER_R * 2.2}

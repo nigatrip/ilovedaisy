@@ -20,9 +20,10 @@ export function SumoPush({ isDemo, round, onEnd }: SumoPushProps) {
   const snap = store.getSnapshot();
   const meId = snap.me.id;
   const peer = snap.room?.players.find((p) => p.id !== meId);
+  const isHost = snap.myPlayer?.role === 'host';
 
-  const [pos, setPos] = useState({ x: 0, y: -70 });
-  const [peerPos, setPeerPos] = useState({ x: 0, y: 70 });
+  const [pos, setPos] = useState(() => ({ x: 0, y: isHost ? -70 : 70 }));
+  const [peerPos, setPeerPos] = useState(() => ({ x: 0, y: isHost ? 70 : -70 }));
   const [vel, setVel] = useState({ x: 0, y: 0 });
   const [peerVel, setPeerVel] = useState({ x: 0, y: 0 });
   const [keys, setKeys] = useState({ up: false, down: false, left: false, right: false });
@@ -185,7 +186,7 @@ export function SumoPush({ isDemo, round, onEnd }: SumoPushProps) {
           style={{ transform: `translate(${pos.x - CHAR_RADIUS * 1.25}px, ${pos.y - CHAR_RADIUS * 1.25}px)` }}
         >
           <Character
-            color="red"
+            color={isHost ? 'red' : 'blue'}
             state={Math.hypot(vel.x, vel.y) > 1 ? 'push' : 'idle'}
             facing={vel.x > 0 ? 'right' : 'left'}
             size={CHAR_RADIUS * 2.5}
@@ -195,7 +196,7 @@ export function SumoPush({ isDemo, round, onEnd }: SumoPushProps) {
           style={{ transform: `translate(${peerPos.x - CHAR_RADIUS * 1.25}px, ${peerPos.y - CHAR_RADIUS * 1.25}px)` }}
         >
           <Character
-            color="blue"
+            color={isHost ? 'blue' : 'red'}
             state={Math.hypot(peerVel.x, peerVel.y) > 1 ? 'push' : 'idle'}
             facing={peerVel.x > 0 ? 'right' : 'left'}
             size={CHAR_RADIUS * 2.5}
